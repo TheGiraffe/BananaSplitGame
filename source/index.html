@@ -49,6 +49,7 @@
 
             function preload(){
                 this.load.image('bg', 'assets/level1/bg.png');
+                this.load.image('floor', 'assets/level1/floor.png');
                 this.load.image('panpoint', 'assets/level1/panpoint.png');
 
                 // Building 1 pieces
@@ -81,11 +82,12 @@
                 this.load.image('collect', 'assets/placeholders/collect.png');
                 this.load.image('avoid', 'assets/placeholders/avoid.png');
                 this.load.spritesheet('bananaman',
-                    'assets/placeholders/bananaman.png',
-                    { frameWidth: 60, frameHeight: 95 });
-                this.load.spritesheet('meet', 
-                    'assets/placeholders/meet.png',
-                    { frameWidth: 70, frameHeight: 100 });
+                    'assets/placeholders/bananaman_spritesheet.png',
+                    { frameWidth: 52, frameHeight: 95 });
+                this.load.spritesheet('watermelon_friend', 
+                    'assets/watermelon_small.png',
+                    { frameWidth: 54, frameHeight: 95 });
+                this.load.image('watermelon_big','assets/watermelon.png')
             }
 
             function create(){
@@ -98,6 +100,8 @@
                 this.scale.pageAlignHorizontally = true;
                 this.scale.pageAlignVertically = true;
                 const bg = this.add.image(0, 0, 'bg').setOrigin(0,0);
+                the_floor = this.physics.add.staticGroup();
+                the_floor.create(0, 530, 'floor').setOrigin(0,0);
                 panpoint = this.physics.add.staticGroup();
                 platforms = this.physics.add.staticGroup();
                 // Building 1
@@ -131,9 +135,11 @@
                 // platforms.create(1020, 350,'building');
 
                 player = this.physics.add.sprite(100, 0, 'bananaman');
-                player.body.setGravityY(300);
                 player.setBounce(0.5);
                 //player.setCollideWorldBounds(true);
+
+                watermelon_friend = this.physics.add.sprite(2000, 0, 'watermelon_friend');
+                watermelon_friend.setBounce(0.5);
 
                 this.anims.create({
                     key: 'left',
@@ -154,7 +160,20 @@
                 })
                 
                 this.physics.add.collider(player, platforms);
+                
                 arrowkey = this.input.keyboard.createCursorKeys();
+
+                this.physics.add.overlap(player, the_floor , floorFall, null, this);
+                function floorFall(player, the_floor){
+                    setTimeout(() => {
+                        var messagex = player.body.position.x;
+                        var messagey = player.body.position.y - 200;
+                        this.add.text(messagex, messagey, 'You Died! Restarting...',{color: '#521d01'});
+                        }, 150);
+                    setTimeout(() => {
+                        this.scene.restart();
+                        }, 2000);
+                }
 
                 this.physics.add.overlap(player, last, panScene, null, this);
                 let pos = 0;
@@ -169,18 +188,29 @@
                     
                 }
 
+                this.physics.add.collider(watermelon_friend, platforms);
+                this.physics.add.overlap(player, watermelon_friend, watermelonChat, null, this);
+                function watermelonChat(player, watermelon_friend){
+                    this.add.text(1900, 300, 'Hello, Bananaman!',{color: '#521d01'});
+                    this.add.rectangle(1540, 300, 600, 400, 0x521d01);
+                    this.add.image(1275, 300, 'watermelon_big');
+                    this.add.text(1450, 150, 'My friend,\n\nI have a mission for you.',{color: '#FFFFFF', fontSize: '20px'});
+                }
+
             }
             
             function update(){
                 if (arrowkey.left.isDown){
                     player.setVelocityX(-160);
+                    player.anims.play('left', true);
 
                 }else if (arrowkey.right.isDown){
                     player.setVelocityX(160);
+                    player.anims.play('right', true);
 
                 }else{
                     player.setVelocityX(0);
-                    player.anims.play('turn', true);
+                    player.anims.play('turn');
                 }
 
                 if (arrowkey.space.isDown){
