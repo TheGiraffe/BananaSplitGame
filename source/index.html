@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Banana Split!</title>
+        <script src="//cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+        <style type = "text/css">
+        
+        </style>
+    </head>
+    <body>
+        <div id = "game-container" style="overflow: hidden; width: 100%; height:97%"></div>
+        </div>
+
+        <script type="text/javascript">
+
+            var config = {
+                type: Phaser.AUTO,
+                scale: {
+                    mode: Phaser.Scale.ENVELOP,
+                    parent: 'game-container',
+                    autoCenter: Phaser.Scale.CENTER_BOTH,
+                    width: 1000,
+                    height: 500
+                },
+                physics: {
+                    default: 'arcade',
+                    arcade: {
+                        gravity: {y: 300},
+                        debug: false
+                    }
+                },
+                scene:{
+                    preload: preload,
+                    create: create,
+                    update: update
+                }
+            };
+
+            var game = new Phaser.Game(config);
+
+            function preload(){
+                this.load.image('bg', 'assets/placeholders/bg.png');
+                this.load.image('building', 'assets/placeholders/building.png');
+                this.load.image('collect', 'assets/placeholders/collect.png');
+                this.load.image('avoid', 'assets/placeholders/avoid.png');
+                this.load.spritesheet('bananaman',
+                    'assets/placeholders/bananaman.png',
+                    { frameWidth: 120, frameHeight: 190 });
+                this.load.spritesheet('meet', 
+                    'assets/placeholders/meet.png',
+                    { frameWidth: 70, frameHeight: 100 });
+            }
+
+            function create(){
+                
+                this.add.image(0, 0, 'bg').setOrigin(0,0);
+                platforms = this.physics.add.staticGroup();
+                platforms.create(100, 315, 'building');
+                //platforms.create(325, 415,'building');
+                platforms.create(400, 365,'building');
+                platforms.create(700, 415,'building');
+                platforms.create(1020, 350,'building');
+
+                player = this.physics.add.sprite(100, 0, 'bananaman').setScale(0.4).refreshBody();
+                player.body.setGravityY(300);
+                player.setBounce(0.5);
+                //player.setCollideWorldBounds(true);
+
+                this.anims.create({
+                    key: 'left',
+                    frames: this.anims.generateFrameNumbers('bananaman', { start: 0, end: 3 }),
+                    frameRate: 10,
+                    repeat: -1
+                })
+                this.anims.create({
+                    key: 'turn',
+                    frames: [{key: 'bananaman', frame: 4}],
+                    frameRate: 20
+                })
+                this.anims.create({
+                    key: 'right',
+                    frames: this.anims.generateFrameNumbers('bananaman', { start: 5, end: 8 }),
+                    frameRate: 10,
+                    repeat: -1
+                })
+                
+                this.physics.add.collider(player, platforms);
+                arrowkey = this.input.keyboard.createCursorKeys();
+
+            }
+            
+            function update(){
+                if (arrowkey.left.isDown){
+                    player.setVelocityX(-160);
+
+                }else if (arrowkey.right.isDown){
+                    player.setVelocityX(160);
+
+                }else{
+                    player.setVelocityX(0);
+                    player.anims.play('turn', true);
+                }
+
+                if (arrowkey.space.isDown){
+                    console.log("space");
+                }
+
+                if (arrowkey.up.isDown && player.body.touching.down){
+                    player.setVelocityY(-500);
+
+                }
+                
+            }
+
+        </script>
+    </body>
+</html>
