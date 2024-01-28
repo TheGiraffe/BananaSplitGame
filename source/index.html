@@ -9,19 +9,19 @@
         </style>
     </head>
     <body>
-        <div id = "game-container" style="overflow: hidden; width: 100%; height:97%"></div>
+        <div id = "game-container" style="overflow: hidden; width: 100%; height:97%">
         </div>
 
         <script type="text/javascript">
-
             var config = {
                 type: Phaser.AUTO,
                 scale: {
-                    mode: Phaser.Scale.ENVELOP,
+                    mode: Phaser.Scale.EXACT_FIT,
                     parent: 'game-container',
                     autoCenter: Phaser.Scale.CENTER_BOTH,
-                    width: 1000,
-                    height: 500
+                    width: '100%',
+                    height: '100%',
+                    autoRound: true
                 },
                 physics: {
                     default: 'arcade',
@@ -29,6 +29,14 @@
                         gravity: {y: 300},
                         debug: false
                     }
+                },
+                antialias: true,
+                antialiasGL: true,
+                pixelArt: false,
+                roundPixels: true,
+                smoothed: false,
+                renderer: {
+                    mipmapFilter: 'LINEAR_MIPMAP_NEAREST'
                 },
                 scene:{
                     preload: preload,
@@ -40,29 +48,89 @@
             var game = new Phaser.Game(config);
 
             function preload(){
-                this.load.image('bg', 'assets/placeholders/bg.png');
+                this.load.image('bg', 'assets/level1/bg.png');
+                this.load.image('panpoint', 'assets/level1/panpoint.png');
+
+                // Building 1 pieces
+                this.load.image('1p1', 'assets/level1/building1/p1.png');
+                this.load.image('1p2', 'assets/level1/building1/p2.png');
+                this.load.image('1p3', 'assets/level1/building1/p3.png');
+                this.load.image('1p4', 'assets/level1/building1/p4.png');
+                this.load.image('1p5', 'assets/level1/building1/p5.png');
+
+                // Building 2 pieces
+                this.load.image('2p1', 'assets/level1/building2/p1.png');
+                this.load.image('2p2', 'assets/level1/building2/p2.png');
+                this.load.image('2p3', 'assets/level1/building2/p3.png');
+                this.load.image('2p4', 'assets/level1/building2/p4.png');
+                this.load.image('2p5', 'assets/level1/building2/p5.png');
+
+                // Building 3 pieces
+                this.load.image('3p1', 'assets/level1/building3/p1.png');
+                this.load.image('3p2', 'assets/level1/building3/p2.png');
+                this.load.image('3p3', 'assets/level1/building3/p3.png');
+                this.load.image('3p4', 'assets/level1/building3/p4.png');
+                this.load.image('3p5', 'assets/level1/building3/p5.png');
+                this.load.image('3p6', 'assets/level1/building3/p6.png');
+
+                // Crane pieces
+                this.load.image('cp1', 'assets/level1/crane/p1.png');
+                this.load.image('cp2', 'assets/level1/crane/p2.png');
+
                 this.load.image('building', 'assets/placeholders/building.png');
                 this.load.image('collect', 'assets/placeholders/collect.png');
                 this.load.image('avoid', 'assets/placeholders/avoid.png');
                 this.load.spritesheet('bananaman',
                     'assets/placeholders/bananaman.png',
-                    { frameWidth: 120, frameHeight: 190 });
+                    { frameWidth: 60, frameHeight: 95 });
                 this.load.spritesheet('meet', 
                     'assets/placeholders/meet.png',
                     { frameWidth: 70, frameHeight: 100 });
             }
 
             function create(){
-                
-                this.add.image(0, 0, 'bg').setOrigin(0,0);
-                platforms = this.physics.add.staticGroup();
-                platforms.create(100, 315, 'building');
-                //platforms.create(325, 415,'building');
-                platforms.create(400, 365,'building');
-                platforms.create(700, 415,'building');
-                platforms.create(1020, 350,'building');
+                this.cameras.main.setBounds(0, 0, 4096, 2048);
+                this.cameras.main.setZoom(1);
+                // this.cameras.main.setZoom(1.5);
+                // this.cameras.main.centerOn(0, 355);
+                this.cameras.main.centerOn(0, 0);
 
-                player = this.physics.add.sprite(100, 0, 'bananaman').setScale(0.4).refreshBody();
+                this.scale.pageAlignHorizontally = true;
+                this.scale.pageAlignVertically = true;
+                const bg = this.add.image(0, 0, 'bg').setOrigin(0,0);
+                panpoint = this.physics.add.staticGroup();
+                platforms = this.physics.add.staticGroup();
+                // Building 1
+                platforms.create(256, 504, '1p1');
+                platforms.create(183, 466, '1p2');
+                platforms.create(407, 421, '1p4');
+                platforms.create(430, 371, '1p5');
+
+                //Building 2
+                platforms.create(645, 477, '2p1');
+                platforms.create(820, 522, '2p2');
+                platforms.create(810, 503, '2p3');
+                platforms.create(763, 437, '2p4');
+                platforms.create(832, 424, '2p5');
+
+                //Building 3
+                platforms.create(1006, 376, '3p1');
+                platforms.create(1188, 394, '3p2');
+                platforms.create(1385, 502, '3p3');
+                platforms.create(1444, 470, '3p4');
+                platforms.create(1501, 320, '3p5');
+                platforms.create(1499, 274, '3p6');
+
+                //this.cameras.main.pan(1540, 0, 2000);
+                // Crane - can only have rectangular colliders so it is a bit weird
+                platforms.create(1890, 485, 'cp1');
+                platforms.create(1680, 392, 'cp2');
+
+                last = panpoint.create(1200, 125,'panpoint');
+                // platforms.create(700, 415,'building');
+                // platforms.create(1020, 350,'building');
+
+                player = this.physics.add.sprite(100, 0, 'bananaman');
                 player.body.setGravityY(300);
                 player.setBounce(0.5);
                 //player.setCollideWorldBounds(true);
@@ -87,6 +155,19 @@
                 
                 this.physics.add.collider(player, platforms);
                 arrowkey = this.input.keyboard.createCursorKeys();
+
+                this.physics.add.overlap(player, last, panScene, null, this);
+                let pos = 0;
+                function panScene(player, last){
+                    if (pos == 0){
+                        this.cameras.main.pan(1540, 0, 2000);
+                        pos = 1;
+                    }else{
+                        this.cameras.main.pan(700, 0, 2000);
+                        pos = 0;
+                    }
+                    
+                }
 
             }
             
