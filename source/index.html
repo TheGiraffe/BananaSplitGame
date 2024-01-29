@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <title>Banana Split!</title>
+        <link rel="icon" type="image/png" href="assets/peel_collectible.png" />
         <script src="//cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
         <style type = "text/css">
         
@@ -46,7 +47,8 @@
             };
             var score = 0;
             var scoreText;
-            var peelIndiicator;
+            var peelIndicator;
+            var gameStart = false;
 
             var game = new Phaser.Game(config);
 
@@ -54,6 +56,8 @@
                 this.load.image('bg', 'assets/level1/bg_med.png');
                 this.load.image('floor', 'assets/level1/floor.png');
                 this.load.image('panpoint', 'assets/level1/panpoint.png');
+                this.load.image('startscreen','assets/startscreen.png')
+                this.load.image('playbutton','assets/startscreen_play.png')
 
                 // Building 1 pieces
                 this.load.image('1p1', 'assets/level1/building1/p1.png');
@@ -225,6 +229,7 @@
                         var messagex = this.cameras.main.worldView.x + 50;
                         var messagey = this.cameras.main.worldView.y + 50;
                         this.add.text(messagex, messagey, 'You Died! Restarting...',{color: '#521d01', fontSize: '20px'});
+                        score = 0;
                         }, 150);
                     setTimeout(() => {
                         this.scene.restart();
@@ -267,6 +272,26 @@
                     this.add.rectangle(2440, 300, 600, 400, 0x521d01);
                     this.add.image(2175, 300, 'watermelon_big');
                     this.add.text(2320, 150, 'Hello, Bananaman.\n\nIt is me, Watermelon-Sherbert.\n\nIt has been a while.\n\nLet me join you for the next level.\n\nI am eager to hear about all of\nyour recent adventures.',{color: '#FFFFFF', fontSize: '18px', lineSpacing: 10}).updateText();
+                    this.add.text(2450, 450, 'Next Level Coming Soon >>');
+                }
+
+                player.body.moves = false;
+                watermelon_friend.body.moves = false;
+                monkey1.body.moves = false;
+                monkey2.body.moves = false;
+                displayscreen = this.physics.add.staticGroup();
+                startscreen = displayscreen.create(650,265,'startscreen');
+                playbutton = this.add.sprite(650,316,'playbutton').setInteractive();
+                playbutton.on('pointerdown', startGame);
+
+                function startGame(){
+                    gameStart = true;
+                    player.body.moves = true;
+                    watermelon_friend.body.moves = true;
+                    monkey1.body.moves = true;
+                    monkey2.body.moves = true;
+                    startscreen.disableBody(true, true);
+                    playbutton.destroy();
                 }
 
 
@@ -280,6 +305,8 @@
             }}
             
             function update(){
+
+                if (gameStart == true){
                 monkeyJump(monkey2, 250);
                 monkeyJump(monkey1, 500);
                 
@@ -304,7 +331,7 @@
                     player.setVelocityY(-450);
 
                 }
-                
+            }
             }
 
         </script>
