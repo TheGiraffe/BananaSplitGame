@@ -44,11 +44,14 @@
                     update: update
                 }
             };
+            var score = 0;
+            var scoreText;
+            var peelIndiicator;
 
             var game = new Phaser.Game(config);
 
             function preload(){
-                this.load.image('bg', 'assets/level1/bg.png');
+                this.load.image('bg', 'assets/level1/bg_med.png');
                 this.load.image('floor', 'assets/level1/floor.png');
                 this.load.image('panpoint', 'assets/level1/panpoint.png');
 
@@ -56,8 +59,6 @@
                 this.load.image('1p1', 'assets/level1/building1/p1.png');
                 this.load.image('1p2', 'assets/level1/building1/p2.png');
                 this.load.image('1p3', 'assets/level1/building1/p3.png');
-                this.load.image('1p4', 'assets/level1/building1/p4.png');
-                this.load.image('1p5', 'assets/level1/building1/p5.png');
 
                 // Building 2 pieces
                 this.load.image('2p1', 'assets/level1/building2/p1.png');
@@ -79,18 +80,21 @@
                 this.load.image('cp2', 'assets/level1/crane/p2.png');
 
                 this.load.image('building', 'assets/placeholders/building.png');
-                this.load.image('collect', 'assets/placeholders/collect.png');
-                this.load.image('avoid', 'assets/placeholders/avoid.png');
+                this.load.image('peel', 'assets/peel_collectible.png');
                 this.load.spritesheet('bananaman',
-                    'assets/placeholders/bananaman_spritesheet.png',
-                    { frameWidth: 52, frameHeight: 95 });
+                    'assets/bananaman_spritesheet_2.png',
+                    { frameWidth: 100, frameHeight: 95 });
                 this.load.spritesheet('watermelon_friend', 
                     'assets/watermelon_small.png',
                     { frameWidth: 54, frameHeight: 95 });
+                    this.load.spritesheet('monkey', 
+                    'assets/monkey_small.png',
+                    { frameWidth: 57, frameHeight: 76 });
                 this.load.image('watermelon_big','assets/watermelon.png')
             }
 
             function create(){
+                this.physics.world.setBounds( 0, 0, 10000, 2048 );
                 this.cameras.main.setBounds(0, 0, 4096, 2048);
                 this.cameras.main.setZoom(1);
                 // this.cameras.main.setZoom(1.5);
@@ -99,85 +103,137 @@
 
                 this.scale.pageAlignHorizontally = true;
                 this.scale.pageAlignVertically = true;
-                const bg = this.add.image(0, 0, 'bg').setOrigin(0,0);
-                the_floor = this.physics.add.staticGroup();
-                the_floor.create(0, 530, 'floor').setOrigin(0,0);
+                const bg = this.add.image(0, -70, 'bg').setOrigin(0,0);
+
                 panpoint = this.physics.add.staticGroup();
                 platforms = this.physics.add.staticGroup();
-                // Building 1
-                platforms.create(256, 504, '1p1');
-                platforms.create(183, 466, '1p2');
-                platforms.create(407, 421, '1p4');
-                platforms.create(430, 371, '1p5');
+                // // Building 1
+                platforms.create(362, 488, '1p1');
+                platforms.create(573, 343, '1p2');
+                platforms.create(606, 325, '1p3');
 
-                //Building 2
-                platforms.create(645, 477, '2p1');
-                platforms.create(820, 522, '2p2');
-                platforms.create(810, 503, '2p3');
-                platforms.create(763, 437, '2p4');
-                platforms.create(832, 424, '2p5');
+                // //Building 2
+                platforms.create(910, 450, '2p1');
+                platforms.create(1154, 515, '2p2');
+                platforms.create(1138, 486, '2p3');
+                platforms.create(1077, 336, '2p4');
+                platforms.create(1175, 299, '2p5');
 
-                //Building 3
-                platforms.create(1006, 376, '3p1');
-                platforms.create(1188, 394, '3p2');
-                platforms.create(1385, 502, '3p3');
-                platforms.create(1444, 470, '3p4');
-                platforms.create(1501, 320, '3p5');
-                platforms.create(1499, 274, '3p6');
+                // //Building 3
+                platforms.create(1424, 112, '3p1');
+                platforms.create(1398, 284, '3p2');
+                platforms.create(1675, 153, '3p3');
+                platforms.create(1772, 513, '3p4');
+                platforms.create(2115, 152, '3p5');
+                platforms.create(2033, 377, '3p6');
 
                 //this.cameras.main.pan(1540, 0, 2000);
+                //this.cameras.main.pan(2435, 0, 2000);
                 // Crane - can only have rectangular colliders so it is a bit weird
-                platforms.create(1890, 485, 'cp1');
-                platforms.create(1680, 392, 'cp2');
+                platforms.create(2670, 464, 'cp1');
+                platforms.create(2368, 348, 'cp2');
 
-                last = panpoint.create(1200, 125,'panpoint');
+                pan1 = panpoint.create(1130,260,'panpoint');
+                pan2 = panpoint.create(2033,260,'panpoint');
                 // platforms.create(700, 415,'building');
                 // platforms.create(1020, 350,'building');
 
+                floors = this.physics.add.staticGroup();
+                the_floor = floors.create(0, 520, 'floor').setOrigin(0,0);
+                //platforms.create(0, 520, 'floor').setOrigin(0,0);
+
                 player = this.physics.add.sprite(100, 0, 'bananaman');
-                player.setBounce(0.5);
+                player.setBounce(0.4);
                 //player.setCollideWorldBounds(true);
 
-                watermelon_friend = this.physics.add.sprite(2000, 0, 'watermelon_friend');
+                watermelon_friend = this.physics.add.sprite(3000, 0, 'watermelon_friend');
                 watermelon_friend.setBounce(0.5);
+
+                var scorex = this.cameras.main.worldView.x + 600;
+                var scorey = this.cameras.main.worldView.y + 20;
+                peelIndicator = this.add.image(scorex, (scorey+15), 'peel');
+                scoreText = this.add.text((scorex+30), scorey, ': 0',{color: '#000000', fontSize: '40px'})
+
+                peels = this.physics.add.group({
+                    key: 'peel',
+                    repeat: 15,
+                    setXY: { x: 400, y: 0, stepX: 200 },
+                    setBounceY: 0.8
+                });
+
+                peels.children.iterate(function (child) {
+                    child.setY(Phaser.Math.FloatBetween(0, 300));
+                });
+
+                monkey1 = this.physics.add.sprite(1000, 300, 'monkey').setScale(0.5);
+                monkey1.setBounce(0.5);
+
+                monkey2 = this.physics.add.sprite(1500, 300, 'monkey').setScale(0.9);
+                monkey2.setBounce(0.5);
 
                 this.anims.create({
                     key: 'left',
-                    frames: this.anims.generateFrameNumbers('bananaman', { start: 0, end: 3 }),
+                    frames: this.anims.generateFrameNumbers('bananaman', { start: 0, end: 1 }),
                     frameRate: 10,
                     repeat: -1
                 })
                 this.anims.create({
                     key: 'turn',
-                    frames: [{key: 'bananaman', frame: 4}],
+                    frames: [{key: 'bananaman', frame: 2}],
                     frameRate: 20
                 })
                 this.anims.create({
                     key: 'right',
-                    frames: this.anims.generateFrameNumbers('bananaman', { start: 5, end: 8 }),
+                    frames: this.anims.generateFrameNumbers('bananaman', { start: 3, end: 4 }),
                     frameRate: 10,
                     repeat: -1
                 })
                 
                 this.physics.add.collider(player, platforms);
-                
+                //this.physics.add.collider(player, the_floor);
+                this.physics.add.collider(peels, platforms);
                 arrowkey = this.input.keyboard.createCursorKeys();
 
-                this.physics.add.overlap(player, the_floor , floorFall, null, this);
-                function floorFall(player, the_floor){
+                this.physics.add.overlap(player, the_floor , gameOver, null, this);
+
+                this.physics.add.overlap(player, monkey1, gameOver, null, this);
+                this.physics.add.overlap(player, monkey2, gameOver, null, this);
+
+                this.physics.add.overlap(player, peels, collectPeel, null, this);
+
+                function collectPeel(player, peel){
+                    peel.disableBody(true, true);
+                    score += 1;
+                    scorex = this.cameras.main.worldView.x + 600;
+                    scorey = this.cameras.main.worldView.y + 20;
+                    peelIndicator.setPosition(scorex, (scorey+15));
+                    scoreText.setText(': ' + score).setPosition((scorex+30), scorey);
+                    
+                }
+
+
+                function gameOver(player, the_killer){
+                    console.log("died");
+                    if (the_killer == monkey1 || the_killer == monkey2){
+                        the_killer.setScale(1);
+                        the_killer.setVelocityY(0);
+                        textx = the_killer.x + 50;
+                        texty = the_killer.y - 50;
+                        this.add.text(textx, texty, '!!!',{color: '#b80202', fontSize: '30px'})
+                    }
                     setTimeout(() => {
-                        var messagex = player.body.position.x;
-                        var messagey = player.body.position.y - 200;
-                        this.add.text(messagex, messagey, 'You Died! Restarting...',{color: '#521d01'});
+                        var messagex = this.cameras.main.worldView.x + 50;
+                        var messagey = this.cameras.main.worldView.y + 50;
+                        this.add.text(messagex, messagey, 'You Died! Restarting...',{color: '#521d01', fontSize: '20px'});
                         }, 150);
                     setTimeout(() => {
                         this.scene.restart();
                         }, 2000);
                 }
 
-                this.physics.add.overlap(player, last, panScene, null, this);
+                this.physics.add.overlap(player, pan1, panScene1, null, this);
                 let pos = 0;
-                function panScene(player, last){
+                function panScene1(player, pan1){
                     if (pos == 0){
                         this.cameras.main.pan(1540, 0, 2000);
                         pos = 1;
@@ -187,19 +243,46 @@
                     }
                     
                 }
-
-                this.physics.add.collider(watermelon_friend, platforms);
-                this.physics.add.overlap(player, watermelon_friend, watermelonChat, null, this);
-                function watermelonChat(player, watermelon_friend){
-                    this.add.text(1900, 300, 'Hello, Bananaman!',{color: '#521d01'});
-                    this.add.rectangle(1540, 300, 600, 400, 0x521d01);
-                    this.add.image(1275, 300, 'watermelon_big');
-                    this.add.text(1450, 150, 'My friend,\n\nI have a mission for you.',{color: '#FFFFFF', fontSize: '20px'});
+                this.physics.add.overlap(player, pan2, panScene2, null, this);
+                let pos2 = 0;
+                function panScene2(player, pan2){
+                    if (pos2 == 0){
+                        this.cameras.main.pan(2435, 0, 2000);
+                        pos2 = 1;
+                    }else{
+                        this.cameras.main.pan(1540, 0, 2000);
+                        pos2 = 0;
+                    }
+                    
                 }
 
+                this.physics.add.collider(watermelon_friend, platforms);
+                this.physics.add.collider(monkey1, platforms);
+                this.physics.add.collider(monkey2, platforms);
+                
+
+                this.physics.add.overlap(player, watermelon_friend, watermelonChat, null, this);
+                function watermelonChat(player, watermelon_friend){
+                    this.add.text(2850, 250, 'Hello,\nmy friend!',{color: '#521d01', lineSpacing: 8});
+                    this.add.rectangle(2440, 300, 600, 400, 0x521d01);
+                    this.add.image(2175, 300, 'watermelon_big');
+                    this.add.text(2320, 150, 'Hello, Bananaman.\n\nIt is me, Watermelon-Sherbert.\n\nIt has been a while.\n\nLet me join you for the next level.\n\nI am eager to hear about all of\nyour recent adventures.',{color: '#FFFFFF', fontSize: '18px', lineSpacing: 10}).updateText();
+                }
+
+
             }
+
+            
+
+            function monkeyJump(monkey, vy){
+                if(monkey.body.touching.down){
+                    monkey.setVelocityY(-vy);
+            }}
             
             function update(){
+                monkeyJump(monkey2, 250);
+                monkeyJump(monkey1, 500);
+                
                 if (arrowkey.left.isDown){
                     player.setVelocityX(-160);
                     player.anims.play('left', true);
@@ -218,7 +301,7 @@
                 }
 
                 if (arrowkey.up.isDown && player.body.touching.down){
-                    player.setVelocityY(-500);
+                    player.setVelocityY(-450);
 
                 }
                 
